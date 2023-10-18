@@ -1,6 +1,5 @@
 "use client";
 
-import { cn } from "@/lib/utils";
 import { ChevronDown, ChevronUp, Loader2, RotateCw, Search } from "lucide-react";
 import { Document, Page, pdfjs } from "react-pdf";
 
@@ -12,20 +11,24 @@ import { useResizeDetector } from "react-resize-detector";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { useState } from "react";
+
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+
 import { zodResolver } from "@hookform/resolvers/zod";
+import { cn } from "@/lib/utils";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
+
 import SimpleBar from "simplebar-react";
 import PdfFullscreen from "./PdfFullscreen";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 
-interface PdfRenderedProps {
+interface PdfRendererProps {
   url: string;
 }
 
-const PdfRenderer = ({ url }: PdfRenderedProps) => {
+const PdfRenderer = ({ url }: PdfRendererProps) => {
   const { toast } = useToast();
 
   const [numPages, setNumPages] = useState<number>();
@@ -53,6 +56,8 @@ const PdfRenderer = ({ url }: PdfRenderedProps) => {
     },
     resolver: zodResolver(CustomPageValidator),
   });
+
+  console.log(errors);
 
   const { width, ref } = useResizeDetector();
 
@@ -135,14 +140,11 @@ const PdfRenderer = ({ url }: PdfRenderedProps) => {
         <SimpleBar autoHide={false} className="max-h-[calc(100vh-10rem)]">
           <div ref={ref}>
             <Document
-              file={url}
-              className="max-h-full"
               loading={
                 <div className="flex justify-center">
                   <Loader2 className="my-24 h-6 w-6 animate-spin" />
                 </div>
               }
-              onLoadSuccess={({ numPages }) => setNumPages(numPages)}
               onLoadError={() => {
                 toast({
                   title: "Error loading PDF",
@@ -150,6 +152,9 @@ const PdfRenderer = ({ url }: PdfRenderedProps) => {
                   variant: "destructive",
                 });
               }}
+              onLoadSuccess={({ numPages }) => setNumPages(numPages)}
+              file={url}
+              className="max-h-full"
             >
               {isLoading && renderedScale ? <Page width={width ? width : 1} pageNumber={currPage} scale={scale} rotate={rotation} key={"@" + renderedScale} /> : null}
 
@@ -159,12 +164,12 @@ const PdfRenderer = ({ url }: PdfRenderedProps) => {
                 pageNumber={currPage}
                 scale={scale}
                 rotate={rotation}
+                key={"@" + scale}
                 loading={
                   <div className="flex justify-center">
                     <Loader2 className="my-24 h-6 w-6 animate-spin" />
                   </div>
                 }
-                key={"@" + scale}
                 onRenderSuccess={() => setRenderedScale(scale)}
               />
             </Document>

@@ -15,6 +15,7 @@ export const appRouter = router({
 
     if (!user.id || !user.email) throw new TRPCError({ code: "UNAUTHORIZED" });
 
+    // check if the user is in the database
     const dbUser = await db.user.findFirst({
       where: {
         id: user.id,
@@ -22,6 +23,7 @@ export const appRouter = router({
     });
 
     if (!dbUser) {
+      // create user in db
       await db.user.create({
         data: {
           id: user.id,
@@ -41,6 +43,7 @@ export const appRouter = router({
       },
     });
   }),
+
   createStripeSession: privateProcedure.mutation(async ({ ctx }) => {
     const { userId } = ctx;
 
@@ -86,6 +89,7 @@ export const appRouter = router({
 
     return { url: stripeSession.url };
   }),
+
   getFileMessages: privateProcedure
     .input(
       z.object({
@@ -149,6 +153,7 @@ export const appRouter = router({
 
     return { status: file.uploadStatus };
   }),
+
   getFile: privateProcedure.input(z.object({ key: z.string() })).mutation(async ({ ctx, input }) => {
     const { userId } = ctx;
 
@@ -163,6 +168,7 @@ export const appRouter = router({
 
     return file;
   }),
+
   deleteFile: privateProcedure.input(z.object({ id: z.string() })).mutation(async ({ ctx, input }) => {
     const { userId } = ctx;
 
@@ -184,4 +190,5 @@ export const appRouter = router({
     return file;
   }),
 });
+
 export type AppRouter = typeof appRouter;
